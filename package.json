@@ -5,7 +5,8 @@
     "scripts": {
         "build": "asc src/index.ts --config asconfig.json --target debug --uncheckedBehavior never",
         "build:registry": "asc src/registry/index.ts --config asconfig-registry.json --target debug --uncheckedBehavior never",
-        "build:all": "npm run build && npm run build:registry",
+        "build:op721reg": "asc src/registry721/index.ts --config asconfig-registry721.json --target debug --uncheckedBehavior never",
+        "build:all": "npm run build && npm run build:registry && npm run build:op721reg",
         "clean": "rm -rf build/*"
     },
     "dependencies": {

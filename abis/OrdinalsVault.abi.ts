@@ -15,10 +15,14 @@ export const OrdinalsVaultEvents = [
 
 export const OrdinalsVaultAbi = [
     {
-        name: 'recordBurn',
+        name: 'recordBurnWithAttestation',
         inputs: [
             { name: 'inscriptionId', type: ABIDataTypes.STRING },
             { name: 'burner', type: ABIDataTypes.ADDRESS },
+            { name: 'deadline', type: ABIDataTypes.UINT64 },
+            { name: 'nonce', type: ABIDataTypes.UINT256 },
+            { name: 'oraclePublicKey', type: ABIDataTypes.BYTES },
+            { name: 'oracleSig', type: ABIDataTypes.BYTES },
         ],
         outputs: [{ name: 'success', type: ABIDataTypes.BOOL }],
         type: BitcoinAbiTypes.Function,
@@ -27,6 +31,12 @@ export const OrdinalsVaultAbi = [
         name: 'mint',
         inputs: [{ name: 'inscriptionId', type: ABIDataTypes.STRING }],
         outputs: [{ name: 'tokenId', type: ABIDataTypes.UINT256 }],
+        type: BitcoinAbiTypes.Function,
+    },
+    {
+        name: 'setOracle',
+        inputs: [{ name: 'newKeyHash', type: ABIDataTypes.UINT256 }],
+        outputs: [{ name: 'success', type: ABIDataTypes.BOOL }],
         type: BitcoinAbiTypes.Function,
     },
     {

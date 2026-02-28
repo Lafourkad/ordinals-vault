@@ -1,7 +1,7 @@
 {
     "functions": [
         {
-            "name": "recordBurn",
+            "name": "recordBurnWithAttestation",
             "type": "Function",
             "payable": false,
             "onlyOwner": false,
@@ -13,6 +13,22 @@
                 {
                     "name": "burner",
                     "type": "ADDRESS"
+                },
+                {
+                    "name": "deadline",
+                    "type": "UINT64"
+                },
+                {
+                    "name": "nonce",
+                    "type": "UINT256"
+                },
+                {
+                    "name": "oraclePublicKey",
+                    "type": "BYTES"
+                },
+                {
+                    "name": "oracleSig",
+                    "type": "BYTES"
                 }
             ],
             "outputs": [
@@ -37,6 +53,24 @@
                 {
                     "name": "tokenId",
                     "type": "UINT256"
+                }
+            ]
+        },
+        {
+            "name": "setOracle",
+            "type": "Function",
+            "payable": false,
+            "onlyOwner": false,
+            "inputs": [
+                {
+                    "name": "newKeyHash",
+                    "type": "UINT256"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "success",
+                    "type": "BOOL"
                 }
             ]
         },

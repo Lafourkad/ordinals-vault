@@ -16,9 +16,9 @@ export type TransferredEvent = {
 // ------------------------------------------------------------------
 
 /**
- * @description Represents the result of the recordBurn function call.
+ * @description Represents the result of the recordBurnWithAttestation function call.
  */
-export type RecordBurn = CallResult<
+export type RecordBurnWithAttestation = CallResult<
     {
         success: boolean;
     },
@@ -33,6 +33,16 @@ export type Mint = CallResult<
         tokenId: bigint;
     },
     OPNetEvent<TransferredEvent>[]
+>;
+
+/**
+ * @description Represents the result of the setOracle function call.
+ */
+export type SetOracle = CallResult<
+    {
+        success: boolean;
+    },
+    OPNetEvent<never>[]
 >;
 
 /**
@@ -60,8 +70,16 @@ export type GetBurnAddress = CallResult<
 // IOrdinalsVault
 // ------------------------------------------------------------------
 export interface IOrdinalsVault extends IOP_NETContract {
-    recordBurn(inscriptionId: string, burner: Address): Promise<RecordBurn>;
+    recordBurnWithAttestation(
+        inscriptionId: string,
+        burner: Address,
+        deadline: bigint,
+        nonce: bigint,
+        oraclePublicKey: Uint8Array,
+        oracleSig: Uint8Array,
+    ): Promise<RecordBurnWithAttestation>;
     mint(inscriptionId: string): Promise<Mint>;
+    setOracle(newKeyHash: bigint): Promise<SetOracle>;
     getBurnStatus(inscriptionId: string): Promise<GetBurnStatus>;
     getBurnAddress(): Promise<GetBurnAddress>;
 }

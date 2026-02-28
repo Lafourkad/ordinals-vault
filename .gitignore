@@ -1,0 +1,13 @@
+node_modules/
+package-lock.json
+
+# Compiled WAT (human-readable WASM text) — too large, .wasm is enough
+build/*.wat
+
+# Plugin sub-repos (published separately)
+plugins/
+plugin/
+
+# Environment
+.env
+*.env.local

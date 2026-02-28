@@ -66,6 +66,16 @@ export type GetBurnAddress = CallResult<
     OPNetEvent<never>[]
 >;
 
+/**
+ * @description Represents the result of the getCollectionId function call.
+ */
+export type GetCollectionId = CallResult<
+    {
+        collectionIdHash: bigint;
+    },
+    OPNetEvent<never>[]
+>;
+
 // ------------------------------------------------------------------
 // IOrdinalsVault
 // ------------------------------------------------------------------
@@ -75,6 +85,7 @@ export interface IOrdinalsVault extends IOP_NETContract {
         burner: Address,
         deadline: bigint,
         nonce: bigint,
+        collectionIdHash: bigint,
         oraclePublicKey: Uint8Array,
         oracleSig: Uint8Array,
     ): Promise<RecordBurnWithAttestation>;
@@ -82,4 +93,5 @@ export interface IOrdinalsVault extends IOP_NETContract {
     setOracle(newKeyHash: bigint): Promise<SetOracle>;
     getBurnStatus(inscriptionId: string): Promise<GetBurnStatus>;
     getBurnAddress(): Promise<GetBurnAddress>;
+    getCollectionId(): Promise<GetCollectionId>;
 }

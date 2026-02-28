@@ -22,6 +22,7 @@ const burnBlockHeightsPointer: u16 = Blockchain.nextPointer;
 const mintedInscriptionsPointer: u16 = Blockchain.nextPointer;
 const oracleKeyHashPointer: u16 = Blockchain.nextPointer;
 const usedNoncesPointer: u16 = Blockchain.nextPointer;
+const collectionIdHashPointer: u16 = Blockchain.nextPointer;
 
 /**
  * OrdinalsVault — Gasless-oracle OP721 bridge for Bitcoin Ordinals.
@@ -77,6 +78,14 @@ export class OrdinalsVault extends OP721 {
     /** nonce (u256) → u256.One if used (anti-replay protection) */
     private readonly _usedNonces: StoredMapU256;
 
+    /**
+     * sha256(collectionSlug) stored as u256.
+     * Included in attestation hash to bind each vault to a specific collection.
+     * Oracle must sign attestations with the matching collectionIdHash.
+     * Set to u256.Zero for universal (legacy) mode — any inscription accepted.
+     */
+    private readonly _collectionIdHash: StoredU256;
+
     public constructor() {
         super();
         this._burnAddress = new StoredString(burnAddressPointer);
@@ -85,6 +94,7 @@ export class OrdinalsVault extends OP721 {
         this._mintedInscriptions = new StoredMapU256(mintedInscriptionsPointer);
         this._oracleKeyHash = new StoredU256(oracleKeyHashPointer, EMPTY_POINTER);
         this._usedNonces = new StoredMapU256(usedNoncesPointer);
+        this._collectionIdHash = new StoredU256(collectionIdHashPointer, EMPTY_POINTER);
     }
 
     /**
@@ -92,7 +102,9 @@ export class OrdinalsVault extends OP721 {
      *
      * @param calldata - name (string), symbol (string), maxSupply (u256),
      *                   burnAddress (string), oracleKeyHash (u256 = sha256 of the
-     *                   oracle's 1312-byte ML-DSA-44 public key, big-endian)
+     *                   oracle's 1312-byte ML-DSA-44 public key, big-endian),
+     *                   collectionIdHash (u256 = sha256 of BIS collection slug,
+     *                   or u256.Zero for universal/legacy mode)
      */
     public override onDeployment(calldata: Calldata): void {
         const name: string = calldata.readStringWithLength();
@@ -100,6 +112,7 @@ export class OrdinalsVault extends OP721 {
         const maxSupply: u256 = calldata.readU256();
         const burnAddress: string = calldata.readStringWithLength();
         const oracleKeyHash: u256 = calldata.readU256();
+        const collectionIdHash: u256 = calldata.readU256();
 
         this.instantiate(
             new OP721InitParameters(name, symbol, '', maxSupply),
@@ -107,6 +120,7 @@ export class OrdinalsVault extends OP721 {
 
         this._burnAddress.value = burnAddress;
         this._oracleKeyHash.value = oracleKeyHash;
+        this._collectionIdHash.value = collectionIdHash;
     }
 
     /**
@@ -119,10 +133,11 @@ export class OrdinalsVault extends OP721 {
      *
      * Attestation hash (must match oracle plugin's `buildAttestationHash` exactly):
      *   sha256(contractAddress || writeU32(inscriptionId.len) || inscriptionId
-     *          || burner || deadline_u64_BE || nonce_u256)
+     *          || burner || deadline_u64_BE || nonce_u256 || collectionIdHash_u256)
      *
      * @param calldata - inscriptionId (string), burner (address),
      *                   deadline (u64, block height), nonce (u256),
+     *                   collectionIdHash (u256, sha256 of collection slug — must match stored value),
      *                   oraclePublicKey (bytes, ML-DSA-44 1312-byte key),
      *                   oracleSig (bytes, ML-DSA-44 2420-byte signature)
      * @returns success (bool)
@@ -132,6 +147,7 @@ export class OrdinalsVault extends OP721 {
         { name: 'burner', type: ABIDataTypes.ADDRESS },
         { name: 'deadline', type: ABIDataTypes.UINT64 },
         { name: 'nonce', type: ABIDataTypes.UINT256 },
+        { name: 'collectionIdHash', type: ABIDataTypes.UINT256 },
         { name: 'oraclePublicKey', type: ABIDataTypes.BYTES },
         { name: 'oracleSig', type: ABIDataTypes.BYTES },
     )
@@ -141,6 +157,7 @@ export class OrdinalsVault extends OP721 {
         const burner: Address = calldata.readAddress();
         const deadline: u64 = calldata.readU64();
         const nonce: u256 = calldata.readU256();
+        const collectionIdHash: u256 = calldata.readU256();
         const oraclePublicKey: Uint8Array = calldata.readBytesWithLength();
         const oracleSig: Uint8Array = calldata.readBytesWithLength();
 
@@ -163,20 +180,29 @@ export class OrdinalsVault extends OP721 {
             throw new Revert('OrdinalsVault: inscription already minted');
         }
 
-        // 4. Verify oracle public key binding (sha256 of provided key == stored hash)
+        // 4. Verify collection binding — attestation must be for THIS collection
+        const storedCollectionId: u256 = this._collectionIdHash.value;
+        if (!u256.eq(storedCollectionId, u256.Zero)) {
+            // Collection-specific vault: collectionIdHash must match exactly
+            if (!u256.eq(collectionIdHash, storedCollectionId)) {
+                throw new Revert('OrdinalsVault: collection ID mismatch');
+            }
+        }
+
+        // 5. Verify oracle public key binding (sha256 of provided key == stored hash)
         const pubKeyHashBytes: Uint8Array = sha256(oraclePublicKey);
         const pubKeyHash: u256 = u256.fromBytes(pubKeyHashBytes, false);
         if (!u256.eq(pubKeyHash, this._oracleKeyHash.value)) {
             throw new Revert('OrdinalsVault: unknown oracle public key');
         }
 
-        // 5. Verify ML-DSA-44 oracle signature
-        const hash: Uint8Array = this.buildAttestationHash(inscriptionId, burner, deadline, nonce);
+        // 6. Verify ML-DSA-44 oracle signature
+        const hash: Uint8Array = this.buildAttestationHash(inscriptionId, burner, deadline, nonce, collectionIdHash);
         if (!Blockchain.verifyMLDSASignature(MLDSASecurityLevel.Level2, oraclePublicKey, oracleSig, hash)) {
             throw new Revert('OrdinalsVault: invalid oracle signature');
         }
 
-        // 6. Mark nonce used and record burn
+        // 7. Mark nonce used and record burn
         this._usedNonces.set(nonce, u256.One);
         this._verifiedBurns.set(key, this.hashAddress(burner));
         this._burnBlockHeights.set(key, u256.fromU64(Blockchain.block.number));
@@ -303,6 +329,20 @@ export class OrdinalsVault extends OP721 {
         return writer;
     }
 
+    /**
+     * Returns the collection ID hash for this vault.
+     * u256.Zero means universal mode (any inscription accepted).
+     *
+     * @returns collectionIdHash (u256)
+     */
+    @method()
+    @returns({ name: 'collectionIdHash', type: ABIDataTypes.UINT256 })
+    public getCollectionId(_calldata: Calldata): BytesWriter {
+        const writer: BytesWriter = new BytesWriter(32);
+        writer.writeU256(this._collectionIdHash.value);
+        return writer;
+    }
+
     // ─── Private helpers ──────────────────────────────────────────────────────
 
     /**
@@ -310,7 +350,7 @@ export class OrdinalsVault extends OP721 {
      *
      * Layout (all big-endian):
      *   contractAddress (32) | inscriptionId_len (4) | inscriptionId_bytes (n)
-     *   | burner (32) | deadline (8) | nonce (32)
+     *   | burner (32) | deadline (8) | nonce (32) | collectionIdHash (32)
      *
      * This layout must match the oracle plugin's `buildAttestationHash` exactly.
      */
@@ -319,9 +359,10 @@ export class OrdinalsVault extends OP721 {
         burner: Address,
         deadline: u64,
         nonce: u256,
+        collectionIdHash: u256,
     ): Uint8Array {
         const inscBytes: Uint8Array = Uint8Array.wrap(String.UTF8.encode(inscriptionId));
-        const msgLen: i32 = 32 + 4 + inscBytes.length + 32 + 8 + 32;
+        const msgLen: i32 = 32 + 4 + inscBytes.length + 32 + 8 + 32 + 32;
         const msg: BytesWriter = new BytesWriter(msgLen);
 
         msg.writeAddress(Blockchain.contract.address);
@@ -330,6 +371,7 @@ export class OrdinalsVault extends OP721 {
         msg.writeAddress(burner);
         msg.writeU64(deadline);
         msg.writeU256(nonce);
+        msg.writeU256(collectionIdHash);
 
         return sha256(msg.getBuffer());
     }

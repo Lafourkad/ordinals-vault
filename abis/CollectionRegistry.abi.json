@@ -1,0 +1,98 @@
+{
+    "functions": [
+        {
+            "name": "registerCollection",
+            "type": "Function",
+            "payable": false,
+            "onlyOwner": false,
+            "inputs": [
+                {
+                    "name": "collectionIdHash",
+                    "type": "UINT256"
+                },
+                {
+                    "name": "vaultAddress",
+                    "type": "ADDRESS"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "success",
+                    "type": "BOOL"
+                }
+            ]
+        },
+        {
+            "name": "updateCollection",
+            "type": "Function",
+            "payable": false,
+            "onlyOwner": false,
+            "inputs": [
+                {
+                    "name": "collectionIdHash",
+                    "type": "UINT256"
+                },
+                {
+                    "name": "newVaultAddress",
+                    "type": "ADDRESS"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "success",
+                    "type": "BOOL"
+                }
+            ]
+        },
+        {
+            "name": "getVault",
+            "type": "Function",
+            "payable": false,
+            "onlyOwner": false,
+            "inputs": [
+                {
+                    "name": "collectionIdHash",
+                    "type": "UINT256"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "vaultAddress",
+                    "type": "ADDRESS"
+                }
+            ]
+        },
+        {
+            "name": "getCollectionCount",
+            "type": "Function",
+            "payable": false,
+            "onlyOwner": false,
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "count",
+                    "type": "UINT256"
+                }
+            ]
+        },
+        {
+            "name": "getCollectionAtIndex",
+            "type": "Function",
+            "payable": false,
+            "onlyOwner": false,
+            "inputs": [
+                {
+                    "name": "index",
+                    "type": "UINT256"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "collectionIdHash",
+                    "type": "UINT256"
+                }
+            ]
+        }
+    ],
+    "events": []
+}

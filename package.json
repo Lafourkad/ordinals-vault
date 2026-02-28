@@ -4,11 +4,13 @@
     "description": "Generic OP721 contract for bridging Bitcoin Ordinals to OPNet",
     "scripts": {
         "build": "asc src/index.ts --config asconfig.json --target debug --uncheckedBehavior never",
+        "build:registry": "asc src/registry/index.ts --config asconfig-registry.json --target debug --uncheckedBehavior never",
+        "build:all": "npm run build && npm run build:registry",
         "clean": "rm -rf build/*"
     },
     "dependencies": {
         "@btc-vision/as-bignum": "0.1.2",
-        "@btc-vision/btc-runtime": "1.11.0-rc.4"
+        "@btc-vision/btc-runtime": "^1.11.0-rc.10"
     },
     "devDependencies": {
         "@btc-vision/assemblyscript": "latest",

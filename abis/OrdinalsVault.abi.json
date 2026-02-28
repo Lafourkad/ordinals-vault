@@ -23,6 +23,10 @@
                     "type": "UINT256"
                 },
                 {
+                    "name": "collectionIdHash",
+                    "type": "UINT256"
+                },
+                {
                     "name": "oraclePublicKey",
                     "type": "BYTES"
                 },
@@ -106,6 +110,19 @@
                 {
                     "name": "burnAddress",
                     "type": "STRING"
+                }
+            ]
+        },
+        {
+            "name": "getCollectionId",
+            "type": "Function",
+            "payable": false,
+            "onlyOwner": false,
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "collectionIdHash",
+                    "type": "UINT256"
                 }
             ]
         }

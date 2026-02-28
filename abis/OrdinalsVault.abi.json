@@ -1,0 +1,103 @@
+{
+    "functions": [
+        {
+            "name": "recordBurn",
+            "type": "Function",
+            "payable": false,
+            "onlyOwner": false,
+            "inputs": [
+                {
+                    "name": "inscriptionId",
+                    "type": "STRING"
+                },
+                {
+                    "name": "burner",
+                    "type": "ADDRESS"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "success",
+                    "type": "BOOL"
+                }
+            ]
+        },
+        {
+            "name": "mint",
+            "type": "Function",
+            "payable": false,
+            "onlyOwner": false,
+            "inputs": [
+                {
+                    "name": "inscriptionId",
+                    "type": "STRING"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "tokenId",
+                    "type": "UINT256"
+                }
+            ]
+        },
+        {
+            "name": "getBurnStatus",
+            "type": "Function",
+            "payable": false,
+            "onlyOwner": false,
+            "inputs": [
+                {
+                    "name": "inscriptionId",
+                    "type": "STRING"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "verified",
+                    "type": "BOOL"
+                },
+                {
+                    "name": "minted",
+                    "type": "BOOL"
+                }
+            ]
+        },
+        {
+            "name": "getBurnAddress",
+            "type": "Function",
+            "payable": false,
+            "onlyOwner": false,
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "burnAddress",
+                    "type": "STRING"
+                }
+            ]
+        }
+    ],
+    "events": [
+        {
+            "name": "Transferred",
+            "values": [
+                {
+                    "name": "operator",
+                    "type": "ADDRESS"
+                },
+                {
+                    "name": "from",
+                    "type": "ADDRESS"
+                },
+                {
+                    "name": "to",
+                    "type": "ADDRESS"
+                },
+                {
+                    "name": "amount",
+                    "type": "UINT256"
+                }
+            ],
+            "type": "Event"
+        }
+    ]
+}

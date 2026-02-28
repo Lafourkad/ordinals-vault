@@ -1,0 +1,25 @@
+{
+    "name": "ordinals-vault-plugin",
+    "version": "1.0.0",
+    "description": "OPNet node plugin that watches Bitcoin blocks for Ordinal burns and calls OrdinalsVault.recordBurn()",
+    "type": "module",
+    "main": "dist/index.jsc",
+    "scripts": {
+        "build": "tsc && echo 'TypeScript compiled (bytenode compilation requires gulp in production)'",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@btc-vision/plugin-sdk": "^1.0.0",
+        "@btc-vision/bitcoin": "7.0.0-alpha.11",
+        "@btc-vision/transaction": "1.8.0-beta.10",
+        "opnet": "1.8.1-beta.13"
+    },
+    "devDependencies": {
+        "typescript": "latest",
+        "bytenode": "latest",
+        "@types/node": "latest"
+    },
+    "overrides": {
+        "@noble/hashes": "2.0.1"
+    }
+}
